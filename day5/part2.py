@@ -1,8 +1,7 @@
 import re
-import math
 
 
-def source_to_destination(input, map):
+def destination_to_source(input, map):
     """Finds appropriate output based on map rules:
     [Source start, Destination start, range],
     where in->out if no range is found
@@ -11,8 +10,8 @@ def source_to_destination(input, map):
     for entry in map:
         [destination_start, source_start, rang] = entry
 
-        if source_start <= input < (source_start + rang):
-            return destination_start + input - source_start
+        if destination_start <= input < (destination_start + rang):
+            return source_start + input - destination_start
 
     return input
 
@@ -39,23 +38,31 @@ def parse_maps(text):
 
 
 lines = [line.strip() for line in open("in.txt", "r")]
-seeds = [int(el) for el in re.findall("\d+", lines[0])]
+seeds = [int(el) for el in re.findall("\d+", lines[0])] #start, range, ...
 maps = parse_maps(lines[2:])
 
-lowest = math.inf
 
-# More seeds
-for seed_idx in range(0, len(seeds), 2):
-    for seed in range(seeds[seed_idx], seeds[seed_idx] + seeds[seed_idx + 1]):
-        print("examining seed:", seed)
-        val = seed
-        for i in range(0, len(maps)):
-            val = source_to_destination(val, maps[i])
 
-        if val < lowest:
-            lowest = val
+def test_locations():
+    """serially test locations for possible seeds up the line"""
 
-print(lowest)
+    location = 0
+    while True:
+        val = location
+        print("checking location", val)
+        for i in range(len(maps) - 1, -1, -1):
+            val = destination_to_source(val, maps[i])
+
+        for i in range(0, len(seeds), 2):
+            seed = seeds[i]
+
+            if seed <= val < (seed + seeds[i+1]):
+                return location
+
+        location += 1
+
+print(test_locations())
+
 
 # Go backwards!
 # lowest location on up through the chain, at the top check against seed ranges
